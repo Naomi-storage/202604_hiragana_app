@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ひらがな練習プロトタイプ</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: sans-serif;
+            touch-action: none; /* ブラウザのスクロール等を禁止 */
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 80vh;
+            background-color: #f0f0f0;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button onclick="clearCanvas()">ぜんぶけす</button>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="draw-area"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('draw-area');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        // キャンバスのサイズ設定（画面幅に合わせる）
+        function resizeCanvas() {
+            canvas.width = container.clientWidth - 20;
+            canvas.height = container.clientHeight - 20;
+            canvas.style.marginTop = "10px";
+            canvas.style.marginLeft = "auto";
+            canvas.style.marginRight = "auto";
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 描画の状態管理
+        let drawing = false;
+
+        // ペンの設定
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#333';
+
+        // 描画開始
+        function startDrawing(e) {
+            drawing = true;
+            draw(e);
+        }
+
+        // 描画終了
+        function stopDrawing() {
+            drawing = false;
+            ctx.beginPath(); // 線のパスをリセット
+        }
+
+        // 描画処理
+        function draw(e) {
+            if (!drawing) return;
+
+            // タッチとマウス両方の座標取得に対応
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        // イベントリスナー（タッチ操作用）
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startDrawing(e);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            draw(e);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // PCでの動作確認用
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+
+        // クリア機能
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
